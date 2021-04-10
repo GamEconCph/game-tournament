@@ -25,7 +25,7 @@ REQUIRED = [
     "numpy",
     "pandas",
     "matplotlib",
-    "naspy",
+    "nashpy",
     # 'requests', 'maya', 'records',
 ]
 
