@@ -43,4 +43,10 @@ A2 = ['L', 'C', 'R']
 
 
 
-game = DiscreteGame(Player1, Player2, U1, U2, action_names=[A1, A2])
+discrete_game = DiscreteGame(Player1, Player2, U1, U2, action_names=[A1, A2])
+
+discrete_game.play_round(DOPRINT=True)
+
+discrete_game.flip_player_roles()
+
+discrete_game.play_round(DOPRINT=True)
