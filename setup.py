@@ -12,7 +12,7 @@ from shutil import rmtree
 from setuptools import find_packages, setup, Command
 
 # Package meta-data.
-NAME = "game-tournament"
+NAME = "game_tournament"
 DESCRIPTION = "A game theory tournament"
 URL = "https://github.com/GamEconCph/game-tournament"
 EMAIL = "qhc336@econ.ku.dk"
