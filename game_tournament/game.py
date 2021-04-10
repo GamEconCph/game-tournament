@@ -119,7 +119,7 @@ class DiscreteGame:
                 actions_played[i] = action_index
 
         if DOPRINT:
-            u = self.payoffs(a)
+            u = self.payoffs(actions_played)
             for i in range(self.n):
                 a_ = self.state["actions"][i][actions_played[i]]
                 print(f"{self.players[i].name} played {a_} getting {u[i]}")

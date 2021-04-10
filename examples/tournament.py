@@ -1,8 +1,8 @@
 import importlib.util
 import os
 import sys
-import numpy
-from game_tournament import game
+import numpy as np
+from game_tournament import DiscreteGame
 
 # TODO: Decide on what student's files should be named
 # TODO: Decide on where student's files should be read from
@@ -43,3 +43,4 @@ A2 = ['L', 'C', 'R']
 
 
 
+game = DiscreteGame(Player1, Player2, U1, U2, action_names=[A1, A2])
