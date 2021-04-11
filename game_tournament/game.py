@@ -1,4 +1,8 @@
 import numpy as np
+import os
+import importlib.util
+import sys
+
 
 
 class Player:
@@ -178,3 +182,102 @@ class DiscreteGame:
             raise Exception(
                 f"Unexpected outcome for total winnings: {tot_winnings}! Maybe NaNs?"
             )
+
+class Tournament:
+    """A game theory tournament.
+
+    Takes a path to modules "players_filepath" 
+    and a game class "game" as input. Outputs a winner of the tournament.
+    """
+    def __init__(self, players_filepath, game):
+        self.players_filepath = players_filepath
+        self.game = game
+        self.player_files = []
+        for file in os.listdir(self.players_filepath):
+            self.player_files.append(file)
+        self.n_players = len(self.player_files)
+        # player file index
+        self.player1_index = 0
+        self.player2_index = 1
+        # player files
+        self.player1_file = None
+        self.player2_file = None
+        # player modules
+        self.player1 = self.load_player_modules(self.player1_index)
+        self.player2 = self.load_player_modules(self.player2_index)
+        # winner of latest game in tournament
+        self.game_winner = None
+        self.tournament_history = dict()
+        # winner of tournament
+        self.tournament_winner = None
+
+        
+
+    def load_player_modules(self, player_index):
+        spec = importlib.util.spec_from_file_location(
+        "module.name",
+        os.path.join(self.players_filepath, self.player_files[player_index]),
+        )
+        player_module = importlib.util.module_from_spec(spec)
+        sys.modules[spec.name] = player_module
+        spec.loader.exec_module(player_module)
+        return player_module.player()
+
+
+    def update_players(self):
+        # TODO: What to do when the game is a draw?
+        """Updates the players based on result of previous game"""
+        self.player1_index = 0
+        self.player2_index = 1
+        self.player1_file = self.player_files[self.player1_index]
+        self.player2_file = self.player_files[self.player2_index]
+        self.player1 = self.load_player_modules(self.player1_index)
+        self.player2 = self.load_player_modules(self.player2_index)
+
+
+    def declare_winner(self, T=1):
+        """This might not make sense in a matrix game"""
+
+        # reset any history
+        self.game.history = []
+
+        # play game T times with default coniguration
+        for t in range(T):
+            self.game.play_round()
+        winnings1 = self.game.compute_total_payoff_from_history(beta=1.0)
+
+        # flip roles of players and do the same
+        self.game.flip_player_roles()
+
+        for t in range(T):
+            self.game.play_round()
+        winnings2 = self.game.compute_total_payoff_from_history(beta=1.0)
+
+        self.game.flip_player_roles()
+        winnings2 = np.flip(winnings2)
+
+        tot_winnings = winnings1 + winnings2
+
+        # determine winner or if draw
+        if tot_winnings[0] > tot_winnings[1]:
+            print(f"{self.game.players[0].name} won!")
+            return 0
+        elif tot_winnings[0] < tot_winnings[1]:
+            print(f"{self.game.players[1].name} won!")
+            return 1
+        elif tot_winnings[0] == tot_winnings[1]:
+            print(f"Draw in {self.game.name}!")
+            return -1
+        else:
+            # this should never happen! means the game has an error somehow
+            raise Exception(
+                f"Unexpected outcome for total winnings: {tot_winnings}! Maybe NaNs?"
+            )
+
+    def start_tournament(self, U1, U2, action_names=[]):
+        for i in range(self.n_players-1):
+            self.game(self.player1, self.player2, U1=U1, U2=U2, action_names=action_names)
+            self.game.declare_winner()
+            self.update_players()
+
+

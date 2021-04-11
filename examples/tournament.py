@@ -7,13 +7,16 @@ from game_tournament import DiscreteGame
 # TODO: Decide on what student's files should be named
 # TODO: Decide on where student's files should be read from
 
+# relative path to where the modules are stored
 players_file_path = "./players" 
-# 
+
 
 # list of player files
 player_files = []
 for file in os.listdir(players_file_path):
     player_files.append(file)
+
+n_players = len(player_files)
 
 
 # import module using full path to file 
