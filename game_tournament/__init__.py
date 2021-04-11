@@ -1,1 +1,1 @@
-from game_tournament.game import Player, DiscreteGame
+from game_tournament.game import Player, DiscreteGame, Tournament

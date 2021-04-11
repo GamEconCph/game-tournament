@@ -2,7 +2,7 @@ import importlib.util
 import os
 import sys
 import numpy as np
-from game_tournament import DiscreteGame
+from game_tournament import DiscreteGame, Tournament
 
 # TODO: Decide on what student's files should be named
 # TODO: Decide on where student's files should be read from
