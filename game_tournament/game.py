@@ -165,22 +165,22 @@ class DiscreteGame:
         self.flip_player_roles()
         winnings2 = np.flip(winnings2)
 
-        tot_winnings = winnings1 + winnings2
+        self.tot_winnings = winnings1 + winnings2
 
         # determine winner or if draw
-        if tot_winnings[0] > tot_winnings[1]:
+        if self.tot_winnings[0] > self.tot_winnings[1]:
             print(f"{self.players[0].name} won!")
             return 0
-        elif tot_winnings[0] < tot_winnings[1]:
+        elif self.tot_winnings[0] < self.tot_winnings[1]:
             print(f"{self.players[1].name} won!")
             return 1
-        elif tot_winnings[0] == tot_winnings[1]:
+        elif self.tot_winnings[0] == self.tot_winnings[1]:
             print(f"Draw in {self.name}!")
             return -1
         else:
             # this should never happen! means the game has an error somehow
             raise Exception(
-                f"Unexpected outcome for total winnings: {tot_winnings}! Maybe NaNs?"
+                f"Unexpected outcome for total winnings: {self.tot_winnings}! Maybe NaNs?"
             )
 
 class Tournament:
@@ -194,7 +194,8 @@ class Tournament:
         self.game = game
         self.player_files = []
         for file in os.listdir(self.players_filepath):
-            self.player_files.append(file)
+            if file[-3:] == ".py":
+                self.player_files.append(file)
         self.n_players = len(self.player_files)
         # player file index
         self.player1_index = 0
@@ -237,8 +238,8 @@ class Tournament:
 
     def start_tournament(self, U1, U2, action_names=[]):
         for i in range(self.n_players-1):
-            game = self.game(self.player1, self.player2, U1=U1, U2=U2, action_names=action_names)
-            game.declare_winner()
+            self.game_played = self.game(self.player1, self.player2, U1=U1, U2=U2, action_names=action_names)
+            self.game_played.declare_winner()
             self.update_players()
 
 
