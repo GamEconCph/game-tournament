@@ -276,8 +276,8 @@ class Tournament:
 
     def start_tournament(self, U1, U2, action_names=[]):
         for i in range(self.n_players-1):
-            self.game(self.player1, self.player2, U1=U1, U2=U2, action_names=action_names)
-            self.game.declare_winner()
+            game = self.game(self.player1, self.player2, U1=U1, U2=U2, action_names=action_names)
+            game.declare_winner()
             self.update_players()
 
 

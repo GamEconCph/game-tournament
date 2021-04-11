@@ -45,11 +45,6 @@ A1 = ['U', 'M', 'D']
 A2 = ['L', 'C', 'R']
 
 
+tournament = Tournament(players_filepath=players_file_path, game=DiscreteGame)
 
-discrete_game = DiscreteGame(Player1, Player2, U1, U2, action_names=[A1, A2])
-
-discrete_game.play_round(DOPRINT=True)
-
-discrete_game.flip_player_roles()
-
-discrete_game.play_round(DOPRINT=True)
+tournament.start_tournament(U1=U1, U2=U2, action_names=[A1, A2])
