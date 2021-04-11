@@ -4,7 +4,7 @@ import numpy as np
 
 class player: 
 
-    def __init__(self, name="Player1"): 
+    def __init__(self, name="Player2"): 
         self.name = name # used for printing 
         self.i = np.nan # player number, not assigned yet 
 

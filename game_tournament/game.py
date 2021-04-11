@@ -235,45 +235,6 @@ class Tournament:
         self.player2 = self.load_player_modules(self.player2_index)
 
 
-    def declare_winner(self, T=1):
-        """This might not make sense in a matrix game"""
-
-        # reset any history
-        self.game.history = []
-
-        # play game T times with default coniguration
-        for t in range(T):
-            self.game.play_round()
-        winnings1 = self.game.compute_total_payoff_from_history(beta=1.0)
-
-        # flip roles of players and do the same
-        self.game.flip_player_roles()
-
-        for t in range(T):
-            self.game.play_round()
-        winnings2 = self.game.compute_total_payoff_from_history(beta=1.0)
-
-        self.game.flip_player_roles()
-        winnings2 = np.flip(winnings2)
-
-        tot_winnings = winnings1 + winnings2
-
-        # determine winner or if draw
-        if tot_winnings[0] > tot_winnings[1]:
-            print(f"{self.game.players[0].name} won!")
-            return 0
-        elif tot_winnings[0] < tot_winnings[1]:
-            print(f"{self.game.players[1].name} won!")
-            return 1
-        elif tot_winnings[0] == tot_winnings[1]:
-            print(f"Draw in {self.game.name}!")
-            return -1
-        else:
-            # this should never happen! means the game has an error somehow
-            raise Exception(
-                f"Unexpected outcome for total winnings: {tot_winnings}! Maybe NaNs?"
-            )
-
     def start_tournament(self, U1, U2, action_names=[]):
         for i in range(self.n_players-1):
             game = self.game(self.player1, self.player2, U1=U1, U2=U2, action_names=action_names)
