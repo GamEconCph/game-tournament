@@ -2,6 +2,9 @@ import numpy as np
 import os
 import importlib.util
 import sys
+from itertools import combinations, groupby
+import tqdm
+import pandas as pd
 
 
 
@@ -144,7 +147,7 @@ class DiscreteGame:
 
         return tot_winnings
 
-    def declare_winner(self, T=1):
+    def declare_winner(self, T=10):
         """This might not make sense in a matrix game"""
 
         # reset any history
@@ -170,13 +173,13 @@ class DiscreteGame:
         # determine winner or if draw
         if self.tot_winnings[0] > self.tot_winnings[1]:
             print(f"{self.players[0].name} won!")
-            return 0
+            self.subgame_winner = [self.players[0].name]
         elif self.tot_winnings[0] < self.tot_winnings[1]:
             print(f"{self.players[1].name} won!")
-            return 1
+            self.subgame_winner = [self.players[1].name]
         elif self.tot_winnings[0] == self.tot_winnings[1]:
             print(f"Draw in {self.name}!")
-            return -1
+            self.subgame_winner = [self.players[0].name, self.players[1].name]
         else:
             # this should never happen! means the game has an error somehow
             raise Exception(
@@ -196,7 +199,7 @@ class Tournament:
         for file in os.listdir(self.players_filepath):
             if file[-3:] == ".py":
                 self.player_files.append(file)
-        self.n_players = len(self.player_files)
+        self.num_players = len(self.player_files)
         # player file index
         self.player1_index = 0
         self.player2_index = 1
@@ -204,8 +207,8 @@ class Tournament:
         self.player1_file = None
         self.player2_file = None
         # player modules
-        self.player1 = self.load_player_modules(self.player1_index)
-        self.player2 = self.load_player_modules(self.player2_index)
+        self.player1 = None
+        self.player2 = None
         # winner of latest game in tournament
         self.game_winner = None
         self.tournament_history = dict()
@@ -214,10 +217,10 @@ class Tournament:
 
         
 
-    def load_player_modules(self, player_index):
+    def load_player_modules(self, player_file):
         spec = importlib.util.spec_from_file_location(
         "module.name",
-        os.path.join(self.players_filepath, self.player_files[player_index]),
+        os.path.join(self.players_filepath, player_file),
         )
         player_module = importlib.util.module_from_spec(spec)
         sys.modules[spec.name] = player_module
@@ -228,18 +231,59 @@ class Tournament:
     def update_players(self):
         # TODO: What to do when the game is a draw?
         """Updates the players based on result of previous game"""
-        self.player1_index = 0
-        self.player2_index = 1
-        self.player1_file = self.player_files[self.player1_index]
-        self.player2_file = self.player_files[self.player2_index]
-        self.player1 = self.load_player_modules(self.player1_index)
-        self.player2 = self.load_player_modules(self.player2_index)
+        self.player1 = self.load_player_modules(self.player1_file)
+        self.player2 = self.load_player_modules(self.player2_file)
 
+    def all_play_all(self):
+        self.tournament_history["all_play_all_results"] = []
+        self.matches = combinations(self.player_files, 2)
+        # Making sure there are not any player files with the same names.
+        assert sum([i==j for i, j in self.matches]) == 0, f"Duplicate players"
+        self.matches = combinations(self.player_files, 2)
+        for player_i, player_j in tqdm.tqdm(self.matches):
+            self.player1_file = player_i
+            self.player2_file = player_j
+            self.update_players()
+            self.game_played = self.game(self.player1, self.player2, U1=self.U1, U2=self.U2, action_names=self.action_names)
+            self.game_played.declare_winner()
+            self.tournament_history["all_play_all_results"].extend(self.game_played.subgame_winner)
+            pass
+
+
+    def calculate_wins(self):
+        wins_ = dict()
+        wins_["Name"] = list()
+        wins_["Wins"] = list()
+        for i in set(self.tournament_history["all_play_all_results"]):
+            wins_["Name"].append(i)
+            wins_["Wins"].append(self.tournament_history["all_play_all_results"].count(i))
+        df = pd.DataFrame(wins_)
+        pass
 
     def start_tournament(self, U1, U2, action_names=[]):
-        for i in range(self.n_players-1):
-            self.game_played = self.game(self.player1, self.player2, U1=U1, U2=U2, action_names=action_names)
-            self.game_played.declare_winner()
-            self.update_players()
+        self.U1 = U1
+        self.U2 = U2
+        self.action_names = action_names
+        self.all_play_all()
+        self.calculate_wins()
+ 
 
 
+players_file_path = "C:/Users/tobi_/OneDrive - Københavns Universitet/KU/GameTheory/game_tournament/examples/players"
+
+
+U1 = np.array([[5, 3, 1], [3, 2, 3], [2, 1, 0]])
+U2 = np.array([[0, 3, 1], [4, 2, 1], [2, 1, 5]])
+
+A1 = ["U", "M", "D"]
+A2 = ["L", "C", "R"]
+
+
+tournament = Tournament(players_filepath=players_file_path, game=DiscreteGame)
+
+tournament.start_tournament(U1=U1, U2=U2, action_names=[A1, A2])
+pass
+
+
+{i: tournament.tournament_history["all_play_all_results"].count(i) for i,_ in groupby(tournament.tournament_history["all_play_all_results"])}
+[(4, 4), (5, 3), (6, 1), (7, 3), (2, 2)]
