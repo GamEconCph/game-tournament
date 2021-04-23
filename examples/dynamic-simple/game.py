@@ -20,6 +20,9 @@ class game:
         self.history = []
 
     def payoffs(self, a1, a2): 
+        # basically an auction: winner takes it all, the market 
+        # is shared in the event of ties. 
+
         if a1 < a2: 
             return a1, 0.0 
         elif a2 < a1: 
