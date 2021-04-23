@@ -172,14 +172,14 @@ class DiscreteGame:
 
         # determine winner or if draw
         if self.tot_winnings[0] > self.tot_winnings[1]:
-            print(f"{self.players[0].name} won!")
-            self.subgame_winner = [self.players[0].name]
+            # print(f"{self.players[0].name} won!")
+            self.subgame_points = [self.players[0].name, self.players[0].name]
         elif self.tot_winnings[0] < self.tot_winnings[1]:
-            print(f"{self.players[1].name} won!")
-            self.subgame_winner = [self.players[1].name]
+            # print(f"{self.players[1].name} won!")
+            self.subgame_points = [self.players[1].name, self.players[1].name]
         elif self.tot_winnings[0] == self.tot_winnings[1]:
-            print(f"Draw in {self.name}!")
-            self.subgame_winner = [self.players[0].name, self.players[1].name]
+            # print(f"Draw in {self.name}!")
+            self.subgame_points = [self.players[0].name, self.players[1].name]
         else:
             # this should never happen! means the game has an error somehow
             raise Exception(
@@ -240,24 +240,24 @@ class Tournament:
         # Making sure there are not any player files with the same names.
         assert sum([i==j for i, j in self.matches]) == 0, f"Duplicate players"
         self.matches = combinations(self.player_files, 2)
-        for player_i, player_j in tqdm.tqdm(self.matches):
+        for player_i, player_j in tqdm.tqdm(list(self.matches)):
             self.player1_file = player_i
             self.player2_file = player_j
             self.update_players()
             self.game_played = self.game(self.player1, self.player2, U1=self.U1, U2=self.U2, action_names=self.action_names)
             self.game_played.declare_winner()
-            self.tournament_history["all_play_all_results"].extend(self.game_played.subgame_winner)
-            pass
+            self.tournament_history["all_play_all_results"].extend(self.game_played.subgame_points)
 
 
     def calculate_wins(self):
-        wins_ = dict()
-        wins_["Name"] = list()
-        wins_["Wins"] = list()
+        points_ = dict()
+        points_["Name"] = list()
+        points_["Points"] = list()
         for i in set(self.tournament_history["all_play_all_results"]):
-            wins_["Name"].append(i)
-            wins_["Wins"].append(self.tournament_history["all_play_all_results"].count(i))
-        df = pd.DataFrame(wins_)
+            points_["Name"].append(i)
+            points_["Points"].append(self.tournament_history["all_play_all_results"].count(i))
+        _df_points = pd.DataFrame(points_)
+        self.tournament_rank = _df_points.sort_values(by=["Points", "Name"])
         pass
 
     def start_tournament(self, U1, U2, action_names=[]):
@@ -266,24 +266,5 @@ class Tournament:
         self.action_names = action_names
         self.all_play_all()
         self.calculate_wins()
+        print("\nTop placements are:\n", self.tournament_rank.head(), sep="")
  
-
-
-players_file_path = "C:/Users/tobi_/OneDrive - Københavns Universitet/KU/GameTheory/game_tournament/examples/players"
-
-
-U1 = np.array([[5, 3, 1], [3, 2, 3], [2, 1, 0]])
-U2 = np.array([[0, 3, 1], [4, 2, 1], [2, 1, 5]])
-
-A1 = ["U", "M", "D"]
-A2 = ["L", "C", "R"]
-
-
-tournament = Tournament(players_filepath=players_file_path, game=DiscreteGame)
-
-tournament.start_tournament(U1=U1, U2=U2, action_names=[A1, A2])
-pass
-
-
-{i: tournament.tournament_history["all_play_all_results"].count(i) for i,_ in groupby(tournament.tournament_history["all_play_all_results"])}
-[(4, 4), (5, 3), (6, 1), (7, 3), (2, 2)]
