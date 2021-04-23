@@ -28,7 +28,7 @@ class DiscreteGame:
     n = 2  # only for 2-player games
 
     def __init__(self, player1, player2, U1, U2, action_names=[]):
-        """Matrix game
+        """Bimatrix game
         player1, player2: player classes, must have method "play()"
         U1, U2: payoff matrices. Rows = # of actions of player 1,
                 cols = # of actions of players 2
