@@ -67,7 +67,7 @@ class DiscreteGame:
             ), f"One name per action (player 1)"
             assert (
                 len(action_names[1]) == U1.shape[1]
-            ), f"One name per action (player 2)"
+            ), f"One name per action (player 2: found {len(action_names[1])} but U1.shape[1]={U1.shape[1]})"
 
         self.state["actions"] = action_names
 
@@ -214,8 +214,15 @@ class Tournament:
         self.tournament_history = dict()
         # winner of tournament
         self.tournament_winner = None
+        self.tournament_rank = None
 
-        
+    def __str__(self): 
+        if self.tournament_rank is not None: 
+            return f'Finished tournament, winner was: {self.tournament_rank.Name[0]}'
+        elif self.num_players is not None: 
+            return f'Tournament ready with {self.num_players} players'
+        else: 
+            return f'Tournament not fully initialized. '
 
     def load_player_modules(self, player_file):
         spec = importlib.util.spec_from_file_location(
@@ -229,7 +236,6 @@ class Tournament:
 
 
     def update_players(self):
-        # TODO: What to do when the game is a draw?
         """Updates the players based on result of previous game"""
         self.player1 = self.load_player_modules(self.player1_file)
         self.player2 = self.load_player_modules(self.player2_file)
@@ -257,14 +263,18 @@ class Tournament:
             points_["Name"].append(i)
             points_["Points"].append(self.tournament_history["all_play_all_results"].count(i))
         _df_points = pd.DataFrame(points_)
-        self.tournament_rank = _df_points.sort_values(by=["Points", "Name"])
+
+        self.tournament_rank = _df_points.sort_values(by=["Points", "Name"], ascending=False)
         pass
 
     def start_tournament(self, U1, U2, action_names=[]):
+        """assigns self.tournament_rank, a dataframe with the points for each player Name 
+        """
         self.U1 = U1
         self.U2 = U2
         self.action_names = action_names
         self.all_play_all()
         self.calculate_wins()
         print("\nTop placements are:\n", self.tournament_rank.head(), sep="")
+        
  
