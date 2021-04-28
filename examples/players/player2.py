@@ -3,13 +3,12 @@ import numpy as np
 
 
 class player: 
+    
+    name = '1st-order dude'
 
     def __init__(self, name="Player2"): 
         self.name = name # used for printing 
         self.i = np.nan # player number, not assigned yet 
-
-    def __str__(self): 
-        return f'Player {self.i}: {self.name}'
 
     def play(self, state, DOPRINT=False): 
         i = self.i
