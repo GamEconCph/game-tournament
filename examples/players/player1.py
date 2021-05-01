@@ -1,21 +1,13 @@
-import numpy as np
+import numpy as np 
 
-class player:
+class player: 
+
+    name = 'Choice0 4evar!'
     
-    name = "Randawg"
-    
-    def __init__(self):
-        self.i = None  # player number, not assigned yet
+    def __init__(self): 
+        self.i = None # player number, will be assigned in the game 
 
-    def play(self, state, DOPRINT=False):
-        i = self.i
-        j = 1 - i  # opponent
-
-        # 0. unpack state variables
-        U = state["payoffs"]
-        A = state["actions"]
-        Ai = np.arange(len(A[i])) # integer version 
-
-        a = np.random.choice(Ai) # pick a random choice [0, 1, ..., nA-1]
-        
-        return a
+    def play(self, state, DOPRINT=False): 
+        # always just pick the first action 
+        # (the first action is always available)
+        return 0
