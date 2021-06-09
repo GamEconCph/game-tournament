@@ -476,7 +476,6 @@ class Tournament:
             self.player1_file = player_i
             self.player2_file = player_j
             self.update_players()
-            assert 'demand_function' in  game_args
             self.game_played = self.game(self.player1, self.player2, **game_args)
             self.game_played.declare_winner(T=T, beta=beta)
             self.tournament_history.extend(self.game_played.subgame_points)
