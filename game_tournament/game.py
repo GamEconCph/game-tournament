@@ -181,6 +181,8 @@ class ContinuousGame(GeneralGame):
         pmin,pmax = self.state['actions'][i_player]
         p = self.players[i_player]
         err_str = f'Player {p.name} made an illegal action'
+        if p.filepath is not None: 
+            err_str += ' (file: "{p.filepath}")'
         assert np.isscalar(a), f'{err_str}: non-scalar action'
         assert (a >= pmin) & (a <= pmax), f'{err_str}: price {a} outside permitted range [{pmin}; {pmax}]'
         return True

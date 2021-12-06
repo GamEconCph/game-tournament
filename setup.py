@@ -15,10 +15,10 @@ from setuptools import find_packages, setup, Command
 NAME = "game_tournament"
 DESCRIPTION = "A game theory tournament"
 URL = "https://github.com/GamEconCph/game-tournament"
-EMAIL = "qhc336@econ.ku.dk"
-AUTHOR = "Tobias Thurøe Ersted"
+EMAIL = "amn@econ.ku.dk"
+AUTHOR = "Anders Munk-Nielsen" # shoutout to Tobias Thurøe Ersted for the initial version of the code, though
 REQUIRES_PYTHON = ">=3.6.0"
-VERSION = "0.1.3"
+VERSION = "0.2.0"
 
 # What packages are required for this module to be executed?
 REQUIRED = [
