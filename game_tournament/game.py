@@ -179,13 +179,84 @@ class ContinuousGame(GeneralGame):
             I (bool): True if action is legals
         '''
         pmin,pmax = self.state['actions'][i_player]
-        p = self.players[i_player]
-        err_str = f'Player {p.name} made an illegal action'
-        if p.filepath is not None: 
-            err_str += ' (file: "{p.filepath}")'
-        assert np.isscalar(a), f'{err_str}: non-scalar action'
-        assert (a >= pmin) & (a <= pmax), f'{err_str}: price {a} outside permitted range [{pmin}; {pmax}]'
-        return True
+        success = True 
+        if a is None: 
+            err = 'returned None'
+            success = False 
+        if np.isscalar(a) == False: 
+            err = 'non-scalar action'
+            success = False
+        if (a < pmin) | (a > pmax): 
+            err = f'price {a} out of permitted range [{pmin}; {pmax}]s' 
+            success = false
+
+        player = self.players[i_player]
+
+        if not success: 
+            err_str_pre = f'Player {player.name} made an illegal action'
+            if p.filepath is not None: 
+                err_str_pre += f'(file: "{p.filepath}")'
+
+            print(f'{err_str_pre}: {err}')
+            return False 
+        else: 
+            return True
+
+class StaticBertrandGame(ContinuousGame): 
+    n = 2 # only for two players 
+
+    def __init__(self, player1, player2, profit_function1, profit_function2, price_range): 
+        '''Static Bertrand Game 
+        INPUTS: 
+            player1, player2: player functions having method play()
+            profit_function1: function of p1, p2
+            profit_function2: function of p2, p1 (!! own price first !!)
+            marginal_cost: scalar, common marginal cost parameter
+            price_range: tuple, (pmin, pmax): the action space 
+            
+        OUTPUT: 
+            [none, writes to self]
+        '''
+        # checks 
+        assert isinstance(price_range, tuple), f'price_range must be a tuple'
+        assert len(price_range) == 2, f'Price range must have two elements, (pmin, pmax)'
+
+        self.action_dtype = float
+
+        pmin, pmax = price_range
+
+        self.players = [player1, player2]
+        for i in [0,1]: 
+            self.players[i].i = i 
+
+        # very basic checks 
+        for player in self.players: 
+            hasattr(player, 'name'), f'Player function has no name!'
+            hasattr(player, 'play'), f'Player function, {player.name}, has no play() sub-function'
+
+        # set the name of this game 
+        self.name = f"{self.players[0].name} vs. {self.players[1].name}"
+        
+        # the state variables that players can see 
+        self.state = dict()
+
+        # demand -> profit
+        pi1 = lambda p1, p2 : profit_function1(p1, p2)
+        pi2 = lambda p2, p1 : profit_function2(p2, p1)
+        self.state['payoffs'] = [pi1, pi2] 
+        self.state['actions'] = [price_range, price_range] # becomes list of tuples
+
+        # history of the game: not visible to players but used if we repeat the game to smooth out randomness 
+        self.history = np.empty((0,2), dtype=self.action_dtype)
+        self.state['discount_factor'] = 1.0 # the game is static, so repeat plays are not discounted (we just smooth out randomness)
+   
+    def get_action(self, player): 
+        j = 1-player.i # if i=1, j=0 and if i=0 then j=1
+        pmin, pmax = self.state['actions'][player.i]
+        f_profit_own = self.state['payoffs'][player.i]
+        f_profit_opponent = self.state['payoffs'][j]
+        a = player.play(f_profit_own, f_profit_opponent, pmin, pmax)
+        return a
 
 class RepeatedBertrandGame(ContinuousGame): 
     n = 2 # only for two players 
