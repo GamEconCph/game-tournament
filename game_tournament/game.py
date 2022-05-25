@@ -261,12 +261,12 @@ class StaticBertrandGame(ContinuousGame):
 class RepeatedBertrandGame(ContinuousGame): 
     n = 2 # only for two players 
 
-    def __init__(self, player1, player2, demand_function, marginal_cost, price_range, discount_factor): 
+    def __init__(self, player1, player2, profit_function1, profit_function2, price_range, discount_factor): 
         '''Repeated Bertrand Game 
             INPUTS: 
                 player1, player2: player functions, having method play(state, history). 
-                demand_function: function handle taking 3 inputs: p1, p2, i
-                marginal_cost: scalar, common marginal cost parameter 
+                profit_function1: payoff function, taking inputs (p1, p2)
+                profit_function2: payoff function, taking inputs (p2, p1) (!! noter the order !!)
                 price_range: tuple, (pmin, pmax): action space is [pmin; pmax]
                 discount_factor: the amount by which the future is discounted 
                     (this number should be used to compute total payoffs, although that 
@@ -275,15 +275,16 @@ class RepeatedBertrandGame(ContinuousGame):
             [no output, modifies the object self]
         '''
         # checks 
+        assert callable(profit_function1), f'profit_function1 must be a function'
+        assert callable(profit_function2), f'profit_function2 must be a function'
         assert isinstance(price_range, tuple), f'price_range must be a tuple'
         assert len(price_range) == 2, f'Price range must have two elements, (pmin, pmax)'
-        assert np.isscalar(marginal_cost), f'marginal_cost must be scalar'
-        assert marginal_cost >= 0.0, f'marginal_cost must be non-negative. '
+        assert np.isscalar(discount_factor), f'discount_factor must be a scalar'
 
-        self.action_dtype = float
+        # actions are prices, i.e. scalar real values 
+        self.action_dtype = float 
 
         pmin, pmax = price_range
-        assert marginal_cost < pmax, f'Marginal cost ({marginal_cost}) must be less than pmax ({pmax})'
 
         self.players = [player1, player2]
         for i in [0,1]: 
@@ -297,30 +298,30 @@ class RepeatedBertrandGame(ContinuousGame):
         
         # the state variables that players can see 
         self.state = dict()
-        pi1 = lambda p1, p2 : demand_function(p1, p2) * (p1 - marginal_cost)
-        self.state['payoffs'] = [pi1, pi1] # the two firms are symmetric, so they face identical demand curves 
+        self.state['payoffs'] = [profit_function1, profit_function2] 
         self.state['actions'] = [price_range, price_range]
 
         # additional relevant information about the game 
         self.state['discount_factor'] = discount_factor
-        self.state['marginal_cost'] = marginal_cost 
 
         self.history = np.empty((0,2), dtype=self.action_dtype) # initialize: shows that no match rounds have been played 
    
     def get_action(self, player): 
         T,N = self.history.shape
+        j = 1-player.i # index for opponent: only works because we have two players and base 0 
         if T == 0: 
             history_own = np.array([]) # empty array 
             history_opponent = np.array([]) # empty array
         else: 
             assert player.i is not None, f'player.i is not assigned'
             history_own = self.history[:, player.i]
-            history_opponent = self.history[:, 1-player.i]
+            history_opponent = self.history[:, j]
 
+        f_profit_own = self.state['payoffs'][player.i]
+        f_profit_opponent = self.state['payoffs'][j]
         pmin, pmax = self.state['actions'][player.i]
-        f_profit = self.state['payoffs'][player.i]
-        a = player.play(f_profit, pmin, pmax, history_own, history_opponent,
-                        self.state['marginal_cost'], self.state['discount_factor'])
+        a = player.play(f_profit_own, f_profit_opponent, pmin, pmax, 
+                        history_own, history_opponent, self.state['discount_factor'])
         return a
 
 class DiscreteGame(GeneralGame):

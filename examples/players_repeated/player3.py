@@ -4,7 +4,7 @@ from game_tournament.game import Player # overarching player class
 class player(Player):
     name = 'Undercutting Bastard'
     
-    def play(self, f_profit, pmin, pmax, history_own, history_opponent, marginal_cost, discount_factor):
+    def play(self, f_profit_own, f_profit_opponent, pmin, pmax, history_own, history_opponent, discount_factor):
         T = len(history_own)
 
         if T == 0: 
@@ -21,8 +21,6 @@ class player(Player):
                 # hike to maximum (hoping the friend follows)
                 p = pmax
         
-        FAIL = (p < pmin) or (p > pmax)
-        if FAIL: 
-            p = np.random.uniform(pmin, pmax)
+        p = np.clip(p, pmin, pmax)
         
         return p
